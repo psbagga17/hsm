@@ -1,0 +1,12 @@
+[project]
+name = "hsm"
+version = "0.1.0"
+description = "GPT-2 with Hierarchical Softmax for efficient language generation"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.35.0",
+    "datasets>=2.14.0",
+    "tqdm>=4.65.0",
+]
