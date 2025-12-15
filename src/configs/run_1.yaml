@@ -1,0 +1,21 @@
+# Run 1: Pretrained=Yes, Freeze=Yes, PRF=Yes
+run_name: "run_1_pretrained_frozen_prf"
+
+model:
+  pretrained: true
+  freeze_transformer: true
+  use_prf: true
+  num_random_features: 64  # Small M for faster training (try 2, 4, 8, 16)
+
+training:
+  epochs: 5
+  batch_size: 32
+  learning_rate: 5.0e-5
+  max_grad_norm: 1.0
+
+data:
+  train_samples: 10000
+  val_samples: 500
+  test_samples: 100
+  max_seq_len: 128
+

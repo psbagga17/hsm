@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Utility functions for Hierarchical Softmax Language Generation."""
+"""Utility functions for Hierarchical Softmax."""
 
 import heapq
 import time
@@ -12,29 +12,26 @@ from transformers import DataCollatorForLanguageModeling, GPT2Tokenizer
 
 
 def execution_timer(func):
-    """Decorator to measure and print execution time of a function."""
-
+    """Decorator to measure execution time."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
-        end_time = time.perf_counter()
-        elapsed_time = end_time - start_time
-        print(f"Function {func.__name__} executed in {elapsed_time:.4f} seconds")
+        elapsed = time.perf_counter() - start_time
+        print(f"Function {func.__name__} executed in {elapsed:.4f} seconds")
         return result
-
     return wrapper
 
 
 class Node:
-    """A node in the Huffman tree for hierarchical softmax."""
+    """Node in the Huffman tree for hierarchical softmax."""
 
     def __init__(self, symbol=None, frequency=None):
         self.symbol = symbol
         self.frequency = frequency
         self.left = None
         self.right = None
-        self.idx = None  # Index for internal nodes (set during HSM init)
+        self.idx = None
 
     def __lt__(self, other):
         return self.frequency < other.frequency
@@ -44,22 +41,11 @@ class Node:
 
 
 def build_tree(leaf_nodes, frequencies):
-    """
-    Build a Huffman tree from leaf nodes and their frequencies.
-
-    Args:
-        leaf_nodes: List of token IDs (vocabulary values)
-        frequencies: List of frequencies for each token
-
-    Returns:
-        Root node of the Huffman tree
-    """
-    # Create a priority queue of nodes
+    """Build Huffman tree from leaf nodes and frequencies."""
     priority_queue = [Node(val, freq) for val, freq in zip(leaf_nodes, frequencies)]
     heapq.heapify(priority_queue)
 
     internal_node_counter = 0
-    # Build the Huffman tree
     while len(priority_queue) > 1:
         left_child = heapq.heappop(priority_queue)
         right_child = heapq.heappop(priority_queue)
@@ -75,17 +61,7 @@ def build_tree(leaf_nodes, frequencies):
 
 
 def generate_paths(node, code, path_dict):
-    """
-    Generate binary paths from root to each leaf node.
-
-    Args:
-        node: Current node in traversal
-        code: Current binary path (list of 0s and 1s)
-        path_dict: Dictionary to store token_id -> path mapping
-
-    Returns:
-        Dictionary mapping token IDs to their binary paths
-    """
+    """Generate binary paths from root to each leaf (token_id -> path)."""
     if node is not None:
         if node.symbol is not None and not isinstance(node.symbol, str):
             path_dict[node.symbol] = code
@@ -95,16 +71,14 @@ def generate_paths(node, code, path_dict):
 
 
 def max_depth(node):
-    """Calculate the maximum depth of a tree."""
+    """Calculate maximum depth of tree."""
     if node is None:
         return 0
-    left_depth = max_depth(node.left)
-    right_depth = max_depth(node.right)
-    return max(left_depth, right_depth) + 1
+    return max(max_depth(node.left), max_depth(node.right)) + 1
 
 
 def get_tokenizer():
-    """Initialize and return a GPT-2 tokenizer."""
+    """Initialize GPT-2 tokenizer."""
     tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -121,26 +95,9 @@ def load_wikitext_data(
     test_samples: int = 100,
     num_workers: int = 8,
 ):
-    """
-    Load and preprocess WikiText-2 dataset.
-
-    Args:
-        tokenizer: HuggingFace tokenizer
-        max_seq_len: Maximum sequence length for chunking
-        batch_size: Batch size for data loaders
-        shuffle: Whether to shuffle data
-        train_samples: Number of training samples to use
-        val_samples: Number of validation samples to use
-        test_samples: Number of test samples to use
-        num_workers: Number of workers for data loading
-
-    Returns:
-        Tuple of (train_dataloader, val_dataloader, test_dataloader, lm_datasets)
-    """
-    # Load dataset
+    """Load and preprocess WikiText-2 dataset."""
     datasets = load_dataset("wikitext", "wikitext-2-raw-v1")
 
-    # Subset the data
     datasets["train"] = datasets["train"].select(
         range(min(train_samples, len(datasets["train"])))
     )
@@ -159,31 +116,21 @@ def load_wikitext_data(
     )
 
     def group_texts(examples, block_size=max_seq_len):
-        """Concatenate all texts and split into fixed-length chunks."""
-        concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
-        total_length = len(concatenated_examples[list(examples.keys())[0]])
-        # Drop the small remainder
+        concatenated = {k: sum(examples[k], []) for k in examples.keys()}
+        total_length = len(concatenated[list(examples.keys())[0]])
         total_length = (total_length // block_size) * block_size
-        # Split by chunks of max_len
         result = {
             k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
-            for k, t in concatenated_examples.items()
+            for k, t in concatenated.items()
         }
         result["labels"] = result["input_ids"].copy()
         return result
 
     lm_datasets = tokenized_datasets.map(
-        group_texts,
-        batched=True,
-        batch_size=1000,
-        num_proc=4,
+        group_texts, batched=True, batch_size=1000, num_proc=4
     )
 
-    data_collator = DataCollatorForLanguageModeling(
-        tokenizer=tokenizer, mlm=False  # False for Causal Language Modeling (CLM)
-    )
-
-    # pin_memory only works with CUDA, not MPS
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
     use_pin_memory = torch.cuda.is_available()
 
     train_dataloader = DataLoader(
@@ -220,7 +167,7 @@ def load_wikitext_data(
 
 
 def inspect_batch(dataloader, tokenizer, name=""):
-    """Print information about a batch from the dataloader."""
+    """Print batch information for debugging."""
     print(f"\n--- {name} Batch Inspection ---")
     for batch in dataloader:
         print(f"Input IDs shape: {batch['input_ids'].shape}")

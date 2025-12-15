@@ -11,3 +11,5 @@ wheels/
 
 # macos ds store
 .DS_Store
+
+outputs/

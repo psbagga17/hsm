@@ -1,0 +1,21 @@
+# Run 2: Pretrained=Yes, Freeze=Yes, PRF=No
+run_name: "run_2_pretrained_frozen_standard"
+
+model:
+  pretrained: true
+  freeze_transformer: true
+  use_prf: false
+  num_random_features: 64
+
+training:
+  epochs: 5
+  batch_size: 32
+  learning_rate: 5.0e-5
+  max_grad_norm: 1.0
+
+data:
+  train_samples: 10000
+  val_samples: 500
+  test_samples: 100
+  max_seq_len: 128
+

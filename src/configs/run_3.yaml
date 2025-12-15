@@ -1,0 +1,21 @@
+# Run 3: Pretrained=Yes, Freeze=No, PRF=Yes
+run_name: "run_3_pretrained_finetune_prf"
+
+model:
+  pretrained: true
+  freeze_transformer: false
+  use_prf: true
+  num_random_features: 64  # Small M for faster training
+
+training:
+  epochs: 5
+  batch_size: 32
+  learning_rate: 5.0e-5
+  max_grad_norm: 1.0
+
+data:
+  train_samples: 10000
+  val_samples: 500
+  test_samples: 100
+  max_seq_len: 128
+
