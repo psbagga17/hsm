@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """O(log V) inference methods for Hierarchical Softmax."""
 
 import heapq

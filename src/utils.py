@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility functions for Hierarchical Softmax."""
 
 import heapq

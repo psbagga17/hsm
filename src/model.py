@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """GPT-2 model wrappers with Hierarchical Softmax head."""
 
 import torch

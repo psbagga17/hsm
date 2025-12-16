@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Hierarchical Softmax Head with optional PRF sigmoid approximation."""
 
 import torch

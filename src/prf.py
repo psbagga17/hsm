@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Positive Random Features (PRF) sigmoid approximation based on FAVOR+."""
 
 import math

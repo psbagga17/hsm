@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Hierarchical Softmax (HSM) for Language Models.
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Evaluation module for HSM experiments."""
 
 import json
